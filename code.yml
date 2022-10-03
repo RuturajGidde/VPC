@@ -1,0 +1,74 @@
+Parameters:
+  AMI:
+    Type: String
+    Description: Custom AMI for webserver
+    Default: ami-076e3a557efe1aa9c
+  InstanceType:
+    Type: String
+    Description: Instance Type
+    Default: t2.micro 
+  KeyName:
+    Type: String
+    Description: put your ssh key     
+
+Resources:
+ VPC:
+   Type: AWS::EC2::VPC
+   Properties:
+     CidrBlock: 10.0.0.0/16
+     EnableDnsSupport: 'true'
+     EnableDnsHostnames: 'true'
+     Tags:
+      - Key: Name
+        Value: RG VPC CF
+
+ InternetGateway:
+   Type: AWS::EC2::InternetGateway
+   Properties:
+    Tags:
+     - Key: Name
+       Value: RG Igw CF
+
+ VPCGatewayAttachment:
+   Type: AWS::EC2::VPCGatewayAttachment
+   Properties:
+     VpcId: !Ref VPC        
+     InternetGatewayId: !Ref InternetGateway
+
+ SubnetA:
+   Type: AWS::EC2::Subnet
+   Properties:
+     VpcId: !Ref VPC       
+     CidrBlock: 10.0.1.0/24
+     AvailabilityZone: "ap-south-1a"
+     Tags:
+      - Key: Name
+        Value: mysubnetlab1
+
+ RouteTable:
+   Type: AWS::EC2::RouteTable
+   Properties:
+     VpcId: !Ref VPC
+     Tags:
+     - Key: Name
+       Value: RG RT CF
+
+ InternetRoute:
+    Type: "AWS::EC2::Route"
+    Properties:
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref RouteTable 
+
+ SubnetARouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref SubnetA
+
+ MyfirstosbyCF: 
+   Type: AWS::EC2::Instance
+   Properties: 
+     ImageId: !Ref AMI
+     InstanceType: !Ref InstanceType
+     AvailabilityZone: ap-south-1a
